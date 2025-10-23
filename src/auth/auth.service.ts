@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -91,6 +92,50 @@ export class AuthService {
       user: userInfo,
       access_token: token,
     };
+  }
+
+  async validateUser(userId: string) {
+    return this.userRepository.findOne({ where: { id: userId } });
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const { password, ...result } = user;
+    return result;
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Update fullName if provided
+    if (updateProfileDto.fullName) {
+      user.fullName = updateProfileDto.fullName;
+    }
+
+    // Update password if provided
+    if (updateProfileDto.currentPassword && updateProfileDto.newPassword) {
+      const isCurrentPasswordValid = await bcrypt.compare(
+        updateProfileDto.currentPassword,
+        user.password,
+      );
+      if (!isCurrentPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+      user.password = await bcrypt.hash(updateProfileDto.newPassword, 10);
+    }
+
+    await this.userRepository.save(user);
+    const { password, ...result } = user;
+    return result;
   }
 }
 

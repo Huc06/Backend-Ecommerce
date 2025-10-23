@@ -5,7 +5,8 @@ A modern e-commerce backend API built with **NestJS**, **PostgreSQL**, and **Typ
 ## 🚀 Features
 
 - ✅ **User Authentication** (Register/Login)
-- ✅ **JWT Token Authentication**
+- ✅ **JWT Token Authentication** with Guards
+- ✅ **Protected Routes** (Profile Management)
 - ✅ **PostgreSQL Database** with TypeORM
 - ✅ **Docker Support** for database
 - ✅ **Input Validation** with class-validator
@@ -109,6 +110,53 @@ Content-Type: application/json
 }
 ```
 
+### Profile Management (Protected Routes)
+
+#### Get User Profile
+```http
+GET /api/auth/profile
+Authorization: Bearer <jwt-token>
+```
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "fullName": "John Doe",
+  "role": "buyer",
+  "status": "active",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### Update User Profile
+```http
+PUT /api/auth/profile
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "fullName": "New Name",
+  "currentPassword": "oldpassword",
+  "newPassword": "newpassword"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "fullName": "New Name",
+  "role": "buyer",
+  "status": "active",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
 ### Health Check
 ```http
 GET /api/health
@@ -119,9 +167,16 @@ GET /api/health
 ```
 src/
 ├── auth/                 # Authentication module
+│   ├── decorators/      # Custom decorators
+│   │   └── current-user.decorator.ts
 │   ├── dto/             # Data Transfer Objects
 │   │   ├── register.dto.ts
-│   │   └── login.dto.ts
+│   │   ├── login.dto.ts
+│   │   └── update-profile.dto.ts
+│   ├── guards/          # Authentication guards
+│   │   └── jwt-auth.guard.ts
+│   ├── strategies/      # Passport strategies
+│   │   └── jwt.strategy.ts
 │   ├── auth.controller.ts
 │   ├── auth.service.ts
 │   └── auth.module.ts
@@ -189,6 +244,19 @@ curl -X POST http://localhost:3000/api/auth/login \
     "email": "test@example.com",
     "password": "password123"
   }'
+```
+
+### Test Profile (Protected Route)
+```bash
+# Get profile
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  http://localhost:3000/api/auth/profile
+
+# Update profile
+curl -X PUT -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"fullName": "New Name"}' \
+  http://localhost:3000/api/auth/profile
 ```
 
 ## 📊 Database Schema
