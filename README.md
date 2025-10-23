@@ -1,98 +1,255 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🛒 E-Commerce Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A modern e-commerce backend API built with **NestJS**, **PostgreSQL**, and **TypeORM**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Features
 
-## Description
+- ✅ **User Authentication** (Register/Login)
+- ✅ **JWT Token Authentication**
+- ✅ **PostgreSQL Database** with TypeORM
+- ✅ **Docker Support** for database
+- ✅ **Input Validation** with class-validator
+- ✅ **CORS Enabled**
+- ✅ **Environment Configuration**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠️ Tech Stack
 
-## Project setup
+- **Framework**: NestJS
+- **Database**: PostgreSQL
+- **ORM**: TypeORM
+- **Authentication**: JWT + Passport
+- **Validation**: class-validator
+- **Container**: Docker & Docker Compose
+- **Package Manager**: pnpm
 
+## 📋 Prerequisites
+
+- Node.js (v18+)
+- pnpm
+- Docker & Docker Compose
+
+## 🚀 Quick Start
+
+### 1. Clone Repository
 ```bash
-$ pnpm install
+git clone https://github.com/Huc06/Backend-Ecommerce.git
+cd Backend-Ecommerce
 ```
 
-## Compile and run the project
-
+### 2. Install Dependencies
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
 ```
 
-## Run tests
-
+### 3. Start Database
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+docker compose up -d
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 4. Start Application
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🗄️ Database Setup
 
-## Resources
+The application uses PostgreSQL with Docker Compose:
 
-Check out a few resources that may come in handy when working with NestJS:
+- **PostgreSQL**: `localhost:5432`
+- **pgAdmin**: `http://localhost:8080`
+  - Email: `admin@admin.com`
+  - Password: `admin`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Database Credentials
+- Database: `ecommerce`
+- Username: `admin`
+- Password: `admin123`
 
-## Support
+## 📚 API Endpoints
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Authentication
 
-## Stay in touch
+#### Register User
+```http
+POST /api/auth/register
+Content-Type: application/json
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "fullName": "John Doe",
+  "role": "buyer" // optional: buyer, seller, admin
+}
+```
 
-## License
+#### Login User
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "buyer",
+    "status": "active",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  "access_token": "jwt-token-here"
+}
+```
+
+### Health Check
+```http
+GET /api/health
+```
+
+## 🏗️ Project Structure
+
+```
+src/
+├── auth/                 # Authentication module
+│   ├── dto/             # Data Transfer Objects
+│   │   ├── register.dto.ts
+│   │   └── login.dto.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   └── auth.module.ts
+├── entities/            # Database entities
+│   └── user.entity.ts
+├── app.controller.ts
+├── app.module.ts
+└── main.ts
+```
+
+## 🔧 Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=admin
+DB_PASSWORD=admin123
+DB_NAME=ecommerce
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
+
+# Application
+PORT=3000
+```
+
+## 🐳 Docker Commands
+
+```bash
+# Start services
+docker compose up -d
+
+# Stop services
+docker compose down
+
+# View logs
+docker compose logs
+
+# Reset database (WARNING: deletes all data)
+docker compose down -v
+```
+
+## 🧪 Testing
+
+### Test Registration
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123",
+    "fullName": "Test User"
+  }'
+```
+
+### Test Login
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123"
+  }'
+```
+
+## 📊 Database Schema
+
+### Users Table
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| email | VARCHAR | Unique email address |
+| password | VARCHAR | Hashed password |
+| fullName | VARCHAR | User's full name |
+| role | VARCHAR | User role (buyer/seller/admin) |
+| status | VARCHAR | Account status (active/inactive/banned) |
+| createdAt | TIMESTAMP | Creation timestamp |
+| updatedAt | TIMESTAMP | Last update timestamp |
+
+## 🔐 Security Features
+
+- Password hashing with bcrypt
+- JWT token authentication
+- Input validation and sanitization
+- CORS protection
+- Environment-based configuration
+
+## 🚧 Development
+
+### Available Scripts
+
+```bash
+# Development
+pnpm start:dev
+
+# Production build
+pnpm build
+
+# Start production
+pnpm start:prod
+
+# Linting
+pnpm lint
+
+# Testing
+pnpm test
+```
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+If you have any questions or need help, please open an issue on GitHub.
+
+---
+
+**Happy Coding! 🎉**
