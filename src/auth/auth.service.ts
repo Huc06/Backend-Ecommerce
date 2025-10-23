@@ -1,9 +1,11 @@
-import { Injectable, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -44,6 +47,50 @@ export class AuthService {
     // Return user without password
     const { password, ...result } = user;
     return result;
+  }
+
+  async login(loginDto: LoginDto) {
+    this.logger.log(`Login attempt: ${loginDto.email}`);
+
+    // Find user by email
+    const user = await this.userRepository.findOne({
+      where: { email: loginDto.email },
+    });
+
+    if (!user) {
+      this.logger.warn(`User not found: ${loginDto.email}`);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    if (!isPasswordValid) {
+      this.logger.warn(`Invalid password for: ${loginDto.email}`);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      this.logger.warn(`Inactive user login attempt: ${loginDto.email}`);
+      throw new UnauthorizedException('Account is not active');
+    }
+
+    // Generate JWT token
+    const payload = { 
+      sub: user.id, 
+      email: user.email, 
+      role: user.role 
+    };
+    const token = this.jwtService.sign(payload);
+
+    this.logger.log(`User logged in successfully: ${user.email}`);
+
+    // Return user info and token
+    const { password, ...userInfo } = user;
+    return {
+      user: userInfo,
+      access_token: token,
+    };
   }
 }
 
