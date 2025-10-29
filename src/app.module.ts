@@ -4,6 +4,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
+import { Product } from './products/entities/product.entity';
+import { Category } from './products/entities/category.entity';
 
 @Module({
   imports: [
@@ -14,10 +17,11 @@ import { AuthModule } from './auth/auth.module';
       username: 'admin',
       password: 'admin123',
       database: 'ecommerce',
-      entities: [User],
+      entities: [User, Product, Category],
       synchronize: true, // Auto create tables - disable in production
     }),
     AuthModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

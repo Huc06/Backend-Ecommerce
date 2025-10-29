@@ -1,76 +1,87 @@
 # 🛒 E-Commerce Backend API
 
-A modern e-commerce backend API built with **NestJS**, **PostgreSQL**, and **TypeORM**.
+A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, and Docker.
 
-## 🚀 Features
+---
 
-- ✅ **User Authentication** (Register/Login)
-- ✅ **JWT Token Authentication** with Guards
-- ✅ **Protected Routes** (Profile Management)
-- ✅ **PostgreSQL Database** with TypeORM
-- ✅ **Docker Support** for database
-- ✅ **Input Validation** with class-validator
-- ✅ **CORS Enabled**
-- ✅ **Environment Configuration**
+## ✨ Features
+- ✅ User Authentication (Register, Login)
+- ✅ JWT Authentication with Passport Guards
+- ✅ Protected Routes (Profile Management)
+- ✅ Products Module (CRUD, search, filter, sort, pagination)
+- ✅ PostgreSQL with TypeORM
+- ✅ Docker Compose for DB + pgAdmin
+- ✅ Input validation (class-validator)
+- ✅ Global pipes, CORS, and env config
 
-## 🛠️ Tech Stack
+---
 
-- **Framework**: NestJS
-- **Database**: PostgreSQL
-- **ORM**: TypeORM
-- **Authentication**: JWT + Passport
-- **Validation**: class-validator
-- **Container**: Docker & Docker Compose
-- **Package Manager**: pnpm
+## 🧰 Tech Stack
+- Framework: NestJS
+- Database: PostgreSQL
+- ORM: TypeORM
+- Auth: JWT + Passport
+- Validation: class-validator / class-transformer
+- Container: Docker & Docker Compose
+- Package manager: pnpm
 
-## 📋 Prerequisites
+---
 
-- Node.js (v18+)
+## 📦 Prerequisites
+- Node.js 18+
 - pnpm
 - Docker & Docker Compose
 
-## 🚀 Quick Start
+---
 
-### 1. Clone Repository
+## 🚀 Getting Started
+
+### 1) Clone & Install
 ```bash
 git clone https://github.com/Huc06/Backend-Ecommerce.git
 cd Backend-Ecommerce
-```
-
-### 2. Install Dependencies
-```bash
 pnpm install
 ```
 
-### 3. Start Database
+### 2) Start Database (Docker)
 ```bash
 docker compose up -d
 ```
-
-### 4. Start Application
-```bash
-pnpm start:dev
-```
-
-## 🗄️ Database Setup
-
-The application uses PostgreSQL with Docker Compose:
-
-- **PostgreSQL**: `localhost:5432`
-- **pgAdmin**: `http://localhost:8080`
+- PostgreSQL: `localhost:5432`
+- pgAdmin: `http://localhost:8080`
   - Email: `admin@admin.com`
   - Password: `admin`
 
-### Database Credentials
-- Database: `ecommerce`
-- Username: `admin`
-- Password: `admin123`
+### 3) Environment Variables
+Create `.env` in the project root:
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=admin
+DB_PASSWORD=admin123
+DB_NAME=ecommerce
 
-## 📚 API Endpoints
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
 
-### Authentication
+# App
+PORT=3000
+```
 
-#### Register User
+### 4) Start App
+```bash
+pnpm start:dev
+```
+- API base URL: `http://localhost:3000/api`
+- Health check: `http://localhost:3000/api/health`
+
+---
+
+## 🔐 Authentication
+
+### Register
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -79,11 +90,11 @@ Content-Type: application/json
   "email": "user@example.com",
   "password": "password123",
   "fullName": "John Doe",
-  "role": "buyer" // optional: buyer, seller, admin
+  "role": "buyer" // optional: buyer | seller | admin
 }
 ```
 
-#### Login User
+### Login
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -94,7 +105,7 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+Response:
 ```json
 {
   "user": {
@@ -110,31 +121,17 @@ Content-Type: application/json
 }
 ```
 
-### Profile Management (Protected Routes)
+### Profile (Protected)
+- Auth header required: `Authorization: Bearer <jwt-token>`
 
-#### Get User Profile
+Get profile
 ```http
 GET /api/auth/profile
-Authorization: Bearer <jwt-token>
 ```
 
-**Response:**
-```json
-{
-  "id": "uuid",
-  "email": "user@example.com",
-  "fullName": "John Doe",
-  "role": "buyer",
-  "status": "active",
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-#### Update User Profile
+Update profile
 ```http
 PUT /api/auth/profile
-Authorization: Bearer <jwt-token>
 Content-Type: application/json
 
 {
@@ -144,71 +141,124 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
-```json
-{
-  "id": "uuid",
-  "email": "user@example.com",
-  "fullName": "New Name",
-  "role": "buyer",
-  "status": "active",
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-01T00:00:00.000Z"
-}
+---
+
+## 🛍️ Products Module
+
+### Endpoints
+- GET `/api/products` — List products with pagination, search, filter, sort
+- GET `/api/products/:id` — Product detail
+- POST `/api/products` — Create product (JWT required)
+- PATCH `/api/products/:id` — Update product (owner or admin, JWT)
+- DELETE `/api/products/:id` — Delete product (owner or admin, JWT)
+
+### Product Model
+- id: uuid
+- name: string (max 200)
+- description: text
+- price: decimal(10,2)
+- stock: number
+- images: string[]
+- status: 'active' | 'inactive' | 'out_of_stock'
+- categoryId: uuid (FK)
+- sellerId: uuid (FK to users)
+
+### Query Params (GET /api/products)
+- `search`: string (by name, ILIKE)
+- `categoryId`: uuid
+- `minPrice`: number
+- `maxPrice`: number
+- `page`: number (default 1)
+- `limit`: number (default 10, max 100)
+- `sortBy`: string (default `createdAt`)
+- `sortOrder`: 'ASC' | 'DESC' (default `DESC`)
+
+### Examples (curl)
+```bash
+# List products (page 1, limit 10)
+curl "http://localhost:3000/api/products?limit=10"
+
+# Search by name
+curl "http://localhost:3000/api/products?search=iPhone"
+
+# Filter by price range
+curl "http://localhost:3000/api/products?minPrice=200&maxPrice=1000"
+
+# Sort by price ASC
+curl "http://localhost:3000/api/products?sortBy=price&sortOrder=ASC"
+
+# Create product (requires JWT)
+TOKEN="<your_jwt_token>"
+curl -X POST http://localhost:3000/api/products \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "iPhone 15 Pro",
+    "description": "Latest iPhone model",
+    "price": 999.99,
+    "stock": 50,
+    "categoryId": "<category-uuid>"
+  }'
 ```
 
-### Health Check
-```http
-GET /api/health
+---
+
+## 🧪 Testing (manual)
+```bash
+# Register
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123","fullName":"Test User"}'
+
+# Login (get token)
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# Use token for profile
+curl -H "Authorization: Bearer <token>" http://localhost:3000/api/auth/profile
 ```
 
-## 🏗️ Project Structure
+---
 
+## 🗄️ Project Structure
 ```
 src/
-├── auth/                 # Authentication module
-│   ├── decorators/      # Custom decorators
+├── auth/
+│   ├── decorators/
 │   │   └── current-user.decorator.ts
-│   ├── dto/             # Data Transfer Objects
-│   │   ├── register.dto.ts
+│   ├── dto/
 │   │   ├── login.dto.ts
+│   │   ├── register.dto.ts
 │   │   └── update-profile.dto.ts
-│   ├── guards/          # Authentication guards
+│   ├── guards/
 │   │   └── jwt-auth.guard.ts
-│   ├── strategies/      # Passport strategies
+│   ├── strategies/
 │   │   └── jwt.strategy.ts
 │   ├── auth.controller.ts
-│   ├── auth.service.ts
-│   └── auth.module.ts
-├── entities/            # Database entities
+│   ├── auth.module.ts
+│   └── auth.service.ts
+├── products/
+│   ├── dto/
+│   │   ├── create-product.dto.ts
+│   │   ├── query-product.dto.ts
+│   │   └── update-product.dto.ts
+│   ├── entities/
+│   │   ├── category.entity.ts
+│   │   └── product.entity.ts
+│   ├── products.controller.ts
+│   ├── products.module.ts
+│   └── products.service.ts
+├── entities/
 │   └── user.entity.ts
 ├── app.controller.ts
 ├── app.module.ts
 └── main.ts
 ```
 
-## 🔧 Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=admin
-DB_PASSWORD=admin123
-DB_NAME=ecommerce
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
-
-# Application
-PORT=3000
-```
+---
 
 ## 🐳 Docker Commands
-
 ```bash
 # Start services
 docker compose up -d
@@ -223,101 +273,14 @@ docker compose logs
 docker compose down -v
 ```
 
-## 🧪 Testing
+---
 
-### Test Registration
-```bash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "password123",
-    "fullName": "Test User"
-  }'
-```
-
-### Test Login
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "password123"
-  }'
-```
-
-### Test Profile (Protected Route)
-```bash
-# Get profile
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  http://localhost:3000/api/auth/profile
-
-# Update profile
-curl -X PUT -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"fullName": "New Name"}' \
-  http://localhost:3000/api/auth/profile
-```
-
-## 📊 Database Schema
-
-### Users Table
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| email | VARCHAR | Unique email address |
-| password | VARCHAR | Hashed password |
-| fullName | VARCHAR | User's full name |
-| role | VARCHAR | User role (buyer/seller/admin) |
-| status | VARCHAR | Account status (active/inactive/banned) |
-| createdAt | TIMESTAMP | Creation timestamp |
-| updatedAt | TIMESTAMP | Last update timestamp |
-
-## 🔐 Security Features
-
-- Password hashing with bcrypt
-- JWT token authentication
-- Input validation and sanitization
-- CORS protection
-- Environment-based configuration
-
-## 🚧 Development
-
-### Available Scripts
-
-```bash
-# Development
-pnpm start:dev
-
-# Production build
-pnpm build
-
-# Start production
-pnpm start:prod
-
-# Linting
-pnpm lint
-
-# Testing
-pnpm test
-```
-
-## 📝 License
-
-This project is licensed under the MIT License.
+## 📄 License
+MIT
 
 ## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-If you have any questions or need help, please open an issue on GitHub.
+- Fork -> Branch -> PR
 
 ---
 
-**Happy Coding! 🎉**
+Happy coding! 🎉
