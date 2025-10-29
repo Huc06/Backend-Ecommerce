@@ -8,6 +8,7 @@ import { ProductsModule } from './products/products.module';
 import { Product } from './products/entities/product.entity';
 import { Category } from './products/entities/category.entity';
 import { CategoriesModule } from './categories/categories.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CategoriesModule } from './categories/categories.module';
     AuthModule,
     ProductsModule,
     CategoriesModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
