@@ -13,6 +13,7 @@ A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, an
 - ✅ Docker Compose for DB + pgAdmin
 - ✅ Input validation (class-validator)
 - ✅ Global pipes, CORS, and env config
+- ✅ File Uploads to IPFS via Pinata (JWT)
 
 ---
 
@@ -65,6 +66,11 @@ DB_NAME=ecommerce
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
+
+# Pinata (IPFS uploads)
+# Create a JWT in Pinata Dashboard → API Keys → Create New Key (JWT)
+PINATA_JWT=eyJ...your_long_pinata_jwt...
+PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
 
 # App
 PORT=3000
@@ -203,6 +209,38 @@ curl -X POST http://localhost:3000/api/products \
 
 ---
 
+## 📤 File Uploads (IPFS via Pinata)
+
+### Endpoint
+- POST `/api/uploads/image` — Upload a single image file (field name: `file`) — JWT required
+
+### Example (curl)
+```bash
+# Login to get API token
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}' | jq -r '.access_token')
+
+# Upload a local image
+curl -X POST http://localhost:3000/api/uploads/image \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/image.jpg"
+```
+
+Response:
+```json
+{
+  "cid": "Qm...",
+  "url": "https://gateway.pinata.cloud/ipfs/Qm..."
+}
+```
+
+Notes:
+- Set `PINATA_JWT` in `.env` (Pinata Dashboard → API Keys → Create New Key (JWT)).
+- Optional: set `PINATA_GATEWAY` to use a custom IPFS gateway.
+
+---
+
 ## 🧪 Testing (manual)
 ```bash
 # Register
@@ -249,6 +287,14 @@ src/
 │   ├── products.controller.ts
 │   ├── products.module.ts
 │   └── products.service.ts
+├── categories/
+│   ├── categories.controller.ts
+│   ├── categories.module.ts
+│   └── categories.service.ts
+├── uploads/
+│   ├── uploads.controller.ts
+│   ├── uploads.module.ts
+│   └── uploads.service.ts
 ├── entities/
 │   └── user.entity.ts
 ├── app.controller.ts
