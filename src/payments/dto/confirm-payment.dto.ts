@@ -1,8 +1,3 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-
-export class ConfirmPaymentDto {
-  @IsString()
-  @IsNotEmpty()
-  paymentIntentId: string;
-}
+// This DTO is no longer needed for VNPAY
+// VNPAY uses return URL callback instead
 

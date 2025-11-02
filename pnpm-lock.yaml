@@ -65,9 +65,6 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
-      stripe:
-        specifier: ^19.2.0
-        version: 19.2.0(@types/node@22.18.12)
       typeorm:
         specifier: ^0.3.27
         version: 0.3.27(pg@8.16.3)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.18.12)(typescript@5.9.3))
@@ -111,9 +108,6 @@ importers:
       '@types/passport-local':
         specifier: ^1.0.38
         version: 1.0.38
-      '@types/stripe':
-        specifier: ^8.0.417
-        version: 8.0.417(@types/node@22.18.12)
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
@@ -1090,10 +1084,6 @@ packages:
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
-
-  '@types/stripe@8.0.417':
-    resolution: {integrity: sha512-PTuqskh9YKNENnOHGVJBm4sM0zE8B1jZw1JIskuGAPkMB+OH236QeN8scclhYGPA4nG6zTtPXgwpXdp+HPDTVw==}
-    deprecated: This is a stub types definition. stripe provides its own type definitions, so you do not need this installed.
 
   '@types/superagent@8.1.9':
     resolution: {integrity: sha512-pTVjI73witn+9ILmoJdajHGW2jkSaOzhiFYF1Rd3EQ94kymLqB9PjD9ISg7WaALC7+dCHT0FGe9T2LktLq/3GQ==}
@@ -3651,15 +3641,6 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@19.2.0:
-    resolution: {integrity: sha512-strzN8luMGMC1LEleGKg7pJGXFx0kSS4y/uSjK8yPQV9SUBMtJVAp/v8XMQLRnMbXaSaWLrIaHcMlKcsizdRDQ==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      '@types/node': '>=16'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
   strtok3@10.3.4:
     resolution: {integrity: sha512-KIy5nylvC5le1OdaaoCJ07L+8iQzJHGH6pWDuzS+d07Cu7n1MZ2x26P8ZKIWfbK02+XIL8Mp4RkWeqdUCrDMfg==}
     engines: {node: '>=18'}
@@ -5342,12 +5323,6 @@ snapshots:
       '@types/send': 0.17.5
 
   '@types/stack-utils@2.0.3': {}
-
-  '@types/stripe@8.0.417(@types/node@22.18.12)':
-    dependencies:
-      stripe: 19.2.0(@types/node@22.18.12)
-    transitivePeerDependencies:
-      - '@types/node'
 
   '@types/superagent@8.1.9':
     dependencies:
@@ -8249,12 +8224,6 @@ snapshots:
       min-indent: 1.0.1
 
   strip-json-comments@3.1.1: {}
-
-  stripe@19.2.0(@types/node@22.18.12):
-    dependencies:
-      qs: 6.14.0
-    optionalDependencies:
-      '@types/node': 22.18.12
 
   strtok3@10.3.4:
     dependencies:

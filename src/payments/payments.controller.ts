@@ -1,24 +1,27 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Req, Headers } from '@nestjs/common';
-import type { RawBodyRequest } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, UseGuards, Request, Req } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
-import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post('create-intent')
+  @Post('create-payment-url')
   @UseGuards(JwtAuthGuard)
-  createPaymentIntent(@Request() req: any, @Body() dto: CreatePaymentIntentDto) {
-    return this.paymentsService.createPaymentIntent(req.user.id, dto);
+  createPaymentUrl(@Request() req: any, @Body() dto: CreatePaymentIntentDto) {
+    const ipAddr = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
+    return this.paymentsService.createPaymentUrl(req.user.id, dto, ipAddr);
   }
 
-  @Post('confirm')
-  @UseGuards(JwtAuthGuard)
-  confirmPayment(@Request() req: any, @Body() dto: ConfirmPaymentDto) {
-    return this.paymentsService.confirmPayment(req.user.id, dto);
+  @Get('vnpay-return')
+  async handleVNPayReturn(@Query() query: Record<string, string>) {
+    return this.paymentsService.handleVNPayReturn(query);
+  }
+
+  @Get('vnpay-ipn')
+  async handleVNPayIPN(@Query() query: Record<string, string>) {
+    return this.paymentsService.handleVNPayIPN(query);
   }
 
   @Get('order/:orderId')
@@ -31,14 +34,6 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   getAllPayments(@Request() req: any) {
     return this.paymentsService.getAllPayments(req.user.id);
-  }
-
-  @Post('webhook')
-  async handleWebhook(
-    @Req() req: RawBodyRequest<any>,
-    @Headers('stripe-signature') signature: string,
-  ) {
-    return this.paymentsService.handleWebhook(req.rawBody, signature);
   }
 }
 

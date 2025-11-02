@@ -4,9 +4,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
-    rawBody: true, // Required for Stripe webhooks
-  });
+  const app = await NestFactory.create(AppModule);
 
   // Enable CORS
   app.enableCors();

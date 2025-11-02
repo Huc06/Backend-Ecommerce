@@ -20,13 +20,16 @@ export class Payment {
   status: string; // 'pending', 'processing', 'succeeded', 'failed', 'refunded'
 
   @Column({ nullable: true })
-  paymentMethod: string; // 'card', 'paypal', etc.
+  paymentMethod: string; // 'VNPAY', 'ATM', 'CREDIT_CARD', etc.
 
   @Column({ nullable: true })
-  stripePaymentIntentId: string;
+  vnpTxnRef: string; // VNPAY transaction reference
 
   @Column({ nullable: true })
-  stripeClientSecret: string;
+  vnpTransactionNo: string; // VNPAY transaction number
+
+  @Column({ nullable: true })
+  vnpResponseCode: string; // VNPAY response code
 
   @Column({ type: 'text', nullable: true })
   failureReason: string;
