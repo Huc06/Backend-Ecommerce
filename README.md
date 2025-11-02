@@ -14,6 +14,7 @@ A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, an
 - ✅ Orders Module (Checkout cart, order management with transaction)
 - ✅ Reviews Module (Product reviews with rating, validation)
 - ✅ Payment Module (VNPAY integration with secure hash, IPN callback)
+- ✅ Swagger/OpenAPI Documentation (Interactive API docs)
 - ✅ PostgreSQL with TypeORM
 - ✅ Docker Compose for DB + pgAdmin
 - ✅ Input validation (class-validator)
@@ -96,6 +97,42 @@ pnpm start:dev
 ```
 - API base URL: `http://localhost:3000/api`
 - Health check: `http://localhost:3000/api/health`
+- **Swagger UI: `http://localhost:3000/api/docs`** 📚
+
+---
+
+## 📚 Swagger API Documentation
+
+### Interactive API Docs
+Access the **Swagger UI** at: **`http://localhost:3000/api/docs`**
+
+### Features:
+- ✅ **Interactive testing** - Test all API endpoints directly in browser
+- ✅ **JWT Authentication** - Click "Authorize" button, paste your JWT token
+- ✅ **Auto-generated docs** - Always up-to-date with code
+- ✅ **Request/Response schemas** - See exactly what data to send/receive
+- ✅ **Try it out** - Execute real API calls and see responses
+- ✅ **Copy as cURL** - Export to use in terminal or other tools
+
+### How to use:
+1. Start the app: `pnpm start:dev`
+2. Open browser: `http://localhost:3000/api/docs`
+3. For protected endpoints:
+   - Click **"Authorize"** button (top right)
+   - Login first to get JWT token
+   - Paste token in format: `your-jwt-token-here`
+   - Click "Authorize"
+4. Now you can test all endpoints!
+
+### Available API Tags:
+- **Auth** - Register, Login, Profile management
+- **Products** - CRUD, search, filter, pagination
+- **Categories** - Category management (admin only)
+- **Cart** - Shopping cart operations
+- **Orders** - Checkout and order management
+- **Reviews** - Product reviews and ratings
+- **Payments** - VNPAY payment integration
+- **Uploads** - File uploads to IPFS
 
 ---
 
