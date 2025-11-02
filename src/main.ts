@@ -12,10 +12,10 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = 3000;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  logger.log(`🚀 App running: http://localhost:${port}/api`);
+  logger.log(`🚀 App running on port ${port}`);
   logger.log(`💚 Health check: http://localhost:${port}/api/health`);
 }
 bootstrap();

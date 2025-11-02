@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './entities/user.entity';
@@ -20,15 +21,36 @@ import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'admin',
-      password: 'admin123',
-      database: 'ecommerce',
-      entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
-      synchronize: true, // Auto create tables - disable in production
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        
+        // Nếu có DATABASE_URL (Render), dùng nó
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
+            synchronize: configService.get<string>('NODE_ENV') !== 'production',
+            ssl: { rejectUnauthorized: false },
+          };
+        }
+        
+        // Fallback cho local development
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: parseInt(configService.get<string>('DB_PORT', '5432')),
+          username: configService.get<string>('DB_USERNAME', 'admin'),
+          password: configService.get<string>('DB_PASSWORD', 'admin123'),
+          database: configService.get<string>('DB_NAME', 'ecommerce'),
+          entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
+          synchronize: true,
+        };
+      },
+      inject: [ConfigService],
     }),
     AuthModule,
     ProductsModule,
