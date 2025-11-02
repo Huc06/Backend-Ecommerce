@@ -12,6 +12,11 @@ import { UploadsModule } from './uploads/uploads.module';
 import { Cart } from './cart/entities/cart.entity';
 import { CartItem } from './cart/entities/cartItem.entity';
 import { CartModule } from './cart/cart.module';
+import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/orderItem.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Review } from './reviews/entities/review.entity';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -22,7 +27,7 @@ import { CartModule } from './cart/cart.module';
       username: 'admin',
       password: 'admin123',
       database: 'ecommerce',
-      entities: [User, Product, Category, Cart, CartItem],
+      entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
       synchronize: true, // Auto create tables - disable in production
     }),
     AuthModule,
@@ -30,6 +35,8 @@ import { CartModule } from './cart/cart.module';
     CategoriesModule,
     UploadsModule,
     CartModule,
+    OrdersModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
