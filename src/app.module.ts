@@ -18,6 +18,8 @@ import { OrderItem } from './orders/entities/orderItem.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Review } from './reviews/entities/review.entity';
 import { ReviewsModule } from './reviews/reviews.module';
+import { Payment } from './payments/entities/payment.entity';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { ReviewsModule } from './reviews/reviews.module';
           return {
             type: 'postgres',
             url: databaseUrl,
-            entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
+            entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review, Payment],
             synchronize: configService.get<string>('NODE_ENV') !== 'production',
             ssl: { rejectUnauthorized: false },
           };
@@ -59,6 +61,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     CartModule,
     OrdersModule,
     ReviewsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
