@@ -9,10 +9,15 @@ A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, an
 - ✅ JWT Authentication with Passport Guards
 - ✅ Protected Routes (Profile Management)
 - ✅ Products Module (CRUD, search, filter, sort, pagination)
+- ✅ Categories Module (Admin-only CRUD)
+- ✅ Cart Module (Add/update/remove items, auto-create cart)
+- ✅ Orders Module (Checkout cart, order management with transaction)
+- ✅ Reviews Module (Product reviews with rating, validation)
 - ✅ PostgreSQL with TypeORM
 - ✅ Docker Compose for DB + pgAdmin
 - ✅ Input validation (class-validator)
 - ✅ Global pipes, CORS, and env config
+- ✅ File Uploads to IPFS via Pinata (JWT)
 
 ---
 
@@ -65,6 +70,11 @@ DB_NAME=ecommerce
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
+
+# Pinata (IPFS uploads)
+# Create a JWT in Pinata Dashboard → API Keys → Create New Key (JWT)
+PINATA_JWT=eyJ...your_long_pinata_jwt...
+PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
 
 # App
 PORT=3000
@@ -203,6 +213,234 @@ curl -X POST http://localhost:3000/api/products \
 
 ---
 
+## 📤 File Uploads (IPFS via Pinata)
+
+### Endpoint
+- POST `/api/uploads/image` — Upload a single image file (field name: `file`) — JWT required
+
+### Example (curl)
+```bash
+# Login to get API token
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}' | jq -r '.access_token')
+
+# Upload a local image
+curl -X POST http://localhost:3000/api/uploads/image \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@/path/to/image.jpg"
+```
+
+Response:
+```json
+{
+  "cid": "Qm...",
+  "url": "https://gateway.pinata.cloud/ipfs/Qm..."
+}
+```
+
+Notes:
+- Set `PINATA_JWT` in `.env` (Pinata Dashboard → API Keys → Create New Key (JWT)).
+- Optional: set `PINATA_GATEWAY` to use a custom IPFS gateway.
+
+---
+
+## 🛒 Cart Module
+
+### Endpoints (All require JWT)
+- GET `/api/cart` — Get user's cart (auto-creates if not exists)
+- POST `/api/cart/items` — Add item to cart
+- PATCH `/api/cart/items/:itemId` — Update item quantity
+- DELETE `/api/cart/items/:itemId` — Remove item from cart
+- DELETE `/api/cart/clear` — Clear all items from cart
+
+### Cart Model
+- id: uuid
+- userId: uuid (unique, FK to users)
+- items: CartItem[] (one-to-many)
+- itemsCount: number (auto-calculated)
+
+### CartItem Model
+- id: uuid
+- cartId: uuid (FK to carts)
+- productId: uuid (FK to products)
+- productName: string (snapshot)
+- unitPrice: decimal(10,2) (snapshot)
+- quantity: number
+
+### Examples (curl)
+```bash
+TOKEN="<your_jwt_token>"
+
+# Get cart
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/cart
+
+# Add item to cart
+curl -X POST http://localhost:3000/api/cart/items \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": "<product-uuid>",
+    "quantity": 2
+  }'
+
+# Update item quantity
+curl -X PATCH http://localhost:3000/api/cart/items/<item-id> \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"quantity": 3}'
+
+# Clear cart
+curl -X DELETE http://localhost:3000/api/cart/clear \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## 📦 Orders Module
+
+### Endpoints (All require JWT)
+- POST `/api/orders/checkout` — Checkout cart → create order (clears cart, updates stock)
+- GET `/api/orders` — List all orders of authenticated user
+- GET `/api/orders/:id` — Get order detail
+- PATCH `/api/orders/:id/status` — Update order status (admin only)
+
+### Order Model
+- id: uuid
+- userId: uuid (FK to users)
+- totalAmount: decimal(10,2)
+- status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+- shippingAddress: text
+- notes: text (nullable)
+- items: OrderItem[] (one-to-many)
+
+### OrderItem Model
+- id: uuid
+- orderId: uuid (FK to orders)
+- productId: uuid (FK to products)
+- productName: string (snapshot)
+- unitPrice: decimal(10,2) (snapshot)
+- quantity: number
+
+### Examples (curl)
+```bash
+TOKEN="<your_jwt_token>"
+
+# Checkout cart
+curl -X POST http://localhost:3000/api/orders/checkout \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "shippingAddress": "123 Main St, City, State 12345",
+    "notes": "Please handle with care"
+  }'
+
+# List orders
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/orders
+
+# Get order detail
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/orders/<order-id>
+
+# Update order status (admin only)
+curl -X PATCH http://localhost:3000/api/orders/<order-id>/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "processing"}'
+```
+
+**Features:**
+- ✅ Transaction-based checkout (atomic operations)
+- ✅ Automatic stock update
+- ✅ Cart cleared after successful checkout
+- ✅ Price snapshot in OrderItem (price at checkout time)
+
+---
+
+## ⭐ Reviews Module
+
+### Endpoints
+- POST `/api/reviews` — Create review (JWT required)
+- GET `/api/reviews` — List reviews (public, with filters)
+- GET `/api/reviews/product/:productId` — List reviews for a product (public)
+- GET `/api/reviews/:id` — Get review detail (public)
+- PATCH `/api/reviews/:id` — Update review (owner/admin, JWT)
+- DELETE `/api/reviews/:id` — Delete review (owner/admin, JWT)
+
+### Review Model
+- id: uuid
+- userId: uuid (FK to users)
+- productId: uuid (FK to products)
+- rating: number (1-5)
+- comment: text (nullable)
+- status: 'active' | 'hidden'
+- user: User (relation)
+- product: Product (relation)
+
+### Query Params (GET /api/reviews)
+- `productId`: uuid (filter by product)
+- `userId`: uuid (filter by user)
+- `rating`: number (filter by rating)
+- `page`: number (default 1)
+- `limit`: number (default 10)
+
+### Examples (curl)
+```bash
+TOKEN="<your_jwt_token>"
+
+# Create review
+curl -X POST http://localhost:3000/api/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": "<product-uuid>",
+    "rating": 5,
+    "comment": "Excellent product! Very satisfied."
+  }'
+
+# List reviews for a product
+curl http://localhost:3000/api/reviews/product/<product-id>?page=1&limit=10
+
+# List all reviews with filters
+curl "http://localhost:3000/api/reviews?productId=<product-id>&rating=5"
+
+# Update review
+curl -X PATCH http://localhost:3000/api/reviews/<review-id> \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 4,
+    "comment": "Updated comment"
+  }'
+
+# Delete review
+curl -X DELETE http://localhost:3000/api/reviews/<review-id> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response for GET /api/reviews/product/:id:**
+```json
+{
+  "reviews": [...],
+  "averageRating": 4.5,
+  "totalRatings": 10,
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 10,
+    "totalPages": 1
+  }
+}
+```
+
+**Features:**
+- ✅ Unique constraint: one review per user per product
+- ✅ Rating validation (1-5)
+- ✅ Average rating calculation
+- ✅ Purchase validation (optional, can be enabled in code)
+- ✅ Owner/admin-only for update/delete
+
+---
+
 ## 🧪 Testing (manual)
 ```bash
 # Register
@@ -249,6 +487,44 @@ src/
 │   ├── products.controller.ts
 │   ├── products.module.ts
 │   └── products.service.ts
+├── categories/
+│   ├── categories.controller.ts
+│   ├── categories.module.ts
+│   └── categories.service.ts
+├── uploads/
+│   ├── uploads.controller.ts
+│   ├── uploads.module.ts
+│   └── uploads.service.ts
+├── cart/
+│   ├── dto/
+│   │   ├── add-item.dto.ts
+│   │   └── update-item.dto.ts
+│   ├── entities/
+│   │   ├── cart.entity.ts
+│   │   └── cartItem.entity.ts
+│   ├── cart.controller.ts
+│   ├── cart.module.ts
+│   └── cart.service.ts
+├── orders/
+│   ├── dto/
+│   │   ├── checkout.dto.ts
+│   │   └── update-order-status.dto.ts
+│   ├── entities/
+│   │   ├── order.entity.ts
+│   │   └── orderItem.entity.ts
+│   ├── orders.controller.ts
+│   ├── orders.module.ts
+│   └── orders.service.ts
+├── reviews/
+│   ├── dto/
+│   │   ├── create-review.dto.ts
+│   │   ├── update-review.dto.ts
+│   │   └── query-review.dto.ts
+│   ├── entities/
+│   │   └── review.entity.ts
+│   ├── reviews.controller.ts
+│   ├── reviews.module.ts
+│   └── reviews.service.ts
 ├── entities/
 │   └── user.entity.ts
 ├── app.controller.ts

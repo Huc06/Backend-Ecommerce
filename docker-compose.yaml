@@ -31,6 +31,8 @@ services:
 volumes:
   postgres_data:
     driver: local
+  pgadmin_data:
+    driver: local
 
 networks:
   ecommerce-network:
