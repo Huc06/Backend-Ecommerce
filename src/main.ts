@@ -9,6 +9,12 @@ async function bootstrap() {
     rawBody: true, // Required for VNPAY webhooks
   });
 
+  // Enable CORS
+  app.enableCors();
+
+  // Global prefix (MUST be set before Swagger setup)
+  app.setGlobalPrefix('api');
+
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('E-Commerce API')
@@ -37,12 +43,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
-  // Enable CORS
-  app.enableCors();
-
-  // Global prefix
-  app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
