@@ -77,11 +77,44 @@ export class PaymentsService {
   }
 
   async handleVNPayReturn(query: Record<string, string>) {
-    // Verify return URL
-    const verifyResult = this.vnpayService.verifyReturnUrl(query);
+    // Verify return URL (chỉ verify và hiển thị, KHÔNG cập nhật DB)
+    const verifyResult = this.vnpayService.verifyCallback(query);
     
     if (!verifyResult.isValid) {
-      throw new BadRequestException('Invalid payment signature');
+      return {
+        success: false,
+        message: 'Invalid payment signature',
+        responseCode: '97',
+      };
+    }
+
+    // Find payment by transaction reference (chỉ để hiển thị)
+    const payment = await this.paymentRepo.findOne({
+      where: { vnpTxnRef: verifyResult.transactionRef },
+    });
+
+    const isSuccess = verifyResult.responseCode === '00' && verifyResult.transactionStatus === '00';
+    
+    return {
+      success: isSuccess,
+      paymentId: payment?.id || null,
+      orderId: payment?.orderId || null,
+      status: payment?.status || 'unknown',
+      message: isSuccess
+        ? 'Thanh toán thành công'
+        : this.vnpayService.getResponseCodeMessage(verifyResult.responseCode),
+      responseCode: verifyResult.responseCode,
+      transactionStatus: verifyResult.transactionStatus,
+    };
+  }
+
+  async handleVNPayIPN(query: Record<string, string>) {
+    // Verify IPN callback
+    const verifyResult = this.vnpayService.verifyCallback(query);
+    
+    // IPN phải trả về JSON với RspCode
+    if (!verifyResult.isValid) {
+      return { RspCode: '97', Message: 'Fail checksum' };
     }
 
     // Find payment by transaction reference
@@ -91,17 +124,37 @@ export class PaymentsService {
     });
 
     if (!payment) {
-      throw new NotFoundException('Payment not found');
+      return { RspCode: '01', Message: 'Order not found' };
+    }
+
+    // Check if already processed
+    if (payment.status === 'succeeded' && verifyResult.responseCode === '00') {
+      return { RspCode: '00', Message: 'success' };
     }
 
     // Update payment status
     payment.vnpResponseCode = verifyResult.responseCode;
+    payment.vnpTransactionStatus = verifyResult.transactionStatus;
     if (verifyResult.transactionNo) {
       payment.vnpTransactionNo = verifyResult.transactionNo;
     }
+    if (verifyResult.bankCode) {
+      payment.vnpBankCode = verifyResult.bankCode;
+    }
+    if (verifyResult.bankTranNo) {
+      payment.vnpBankTranNo = verifyResult.bankTranNo;
+    }
+    if (verifyResult.cardType) {
+      payment.vnpCardType = verifyResult.cardType;
+    }
+    if (verifyResult.payDate) {
+      payment.vnpPayDate = verifyResult.payDate;
+    }
 
-    if (verifyResult.responseCode === '00') {
-      // Success
+    // Check if transaction is successful
+    const isSuccess = verifyResult.responseCode === '00' && verifyResult.transactionStatus === '00';
+
+    if (isSuccess) {
       payment.status = 'succeeded';
       
       // Update order status
@@ -110,29 +163,16 @@ export class PaymentsService {
         await this.orderRepo.save(payment.order);
       }
     } else {
-      // Failed
       payment.status = 'failed';
       payment.failureReason = this.vnpayService.getResponseCodeMessage(verifyResult.responseCode);
     }
 
-    await this.paymentRepo.save(payment);
-
-    return {
-      success: verifyResult.responseCode === '00',
-      paymentId: payment.id,
-      orderId: payment.orderId,
-      status: payment.status,
-      message: verifyResult.responseCode === '00' 
-        ? 'Thanh toán thành công' 
-        : this.vnpayService.getResponseCodeMessage(verifyResult.responseCode),
-      responseCode: verifyResult.responseCode,
-    };
-  }
-
-  async handleVNPayIPN(query: Record<string, string>) {
-    // Similar to handleVNPayReturn but for IPN callback
-    // IPN is called by VNPAY server, not by user browser redirect
-    return this.handleVNPayReturn(query);
+    try {
+      await this.paymentRepo.save(payment);
+      return { RspCode: '00', Message: 'success' };
+    } catch (error) {
+      return { RspCode: '99', Message: 'Update failed' };
+    }
   }
 
   async getPaymentByOrderId(userId: string, orderId: string) {

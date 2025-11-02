@@ -31,6 +31,21 @@ export class Payment {
   @Column({ nullable: true })
   vnpResponseCode: string; // VNPAY response code
 
+  @Column({ nullable: true })
+  vnpTransactionStatus: string; // VNPAY transaction status (00 = success)
+
+  @Column({ nullable: true })
+  vnpBankCode: string; // Bank code
+
+  @Column({ nullable: true })
+  vnpBankTranNo: string; // Bank transaction number
+
+  @Column({ nullable: true })
+  vnpCardType: string; // Card type (ATM, QRCODE)
+
+  @Column({ nullable: true })
+  vnpPayDate: string; // Payment date (yyyyMMddHHmmss)
+
   @Column({ type: 'text', nullable: true })
   failureReason: string;
 
