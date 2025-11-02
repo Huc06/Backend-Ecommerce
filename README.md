@@ -13,6 +13,8 @@ A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, an
 - ✅ Cart Module (Add/update/remove items, auto-create cart)
 - ✅ Orders Module (Checkout cart, order management with transaction)
 - ✅ Reviews Module (Product reviews with rating, validation)
+- ✅ Payment Module (VNPAY integration with secure hash, IPN callback)
+- ✅ Swagger/OpenAPI Documentation (Interactive API docs)
 - ✅ PostgreSQL with TypeORM
 - ✅ Docker Compose for DB + pgAdmin
 - ✅ Input validation (class-validator)
@@ -76,6 +78,15 @@ JWT_EXPIRES_IN=7d
 PINATA_JWT=eyJ...your_long_pinata_jwt...
 PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
 
+# VNPAY Payment Gateway
+# Register at http://sandbox.vnpayment.vn/devreg/ to get credentials
+VNPAY_TMN_CODE=your_tmn_code
+VNPAY_SECRET_KEY=your_secret_key
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+# VNPAY_URL=https://www.vnpayment.vn/paymentv2/vpcpay.html  # Production
+VNPAY_RETURN_URL=http://localhost:3000/api/payments/vnpay-return
+# VNPAY_RETURN_URL=https://your-domain.com/api/payments/vnpay-return  # Production
+
 # App
 PORT=3000
 ```
@@ -86,6 +97,42 @@ pnpm start:dev
 ```
 - API base URL: `http://localhost:3000/api`
 - Health check: `http://localhost:3000/api/health`
+- **Swagger UI: `http://localhost:3000/api/docs`** 📚
+
+---
+
+## 📚 Swagger API Documentation
+
+### Interactive API Docs
+Access the **Swagger UI** at: **`http://localhost:3000/api/docs`**
+
+### Features:
+- ✅ **Interactive testing** - Test all API endpoints directly in browser
+- ✅ **JWT Authentication** - Click "Authorize" button, paste your JWT token
+- ✅ **Auto-generated docs** - Always up-to-date with code
+- ✅ **Request/Response schemas** - See exactly what data to send/receive
+- ✅ **Try it out** - Execute real API calls and see responses
+- ✅ **Copy as cURL** - Export to use in terminal or other tools
+
+### How to use:
+1. Start the app: `pnpm start:dev`
+2. Open browser: `http://localhost:3000/api/docs`
+3. For protected endpoints:
+   - Click **"Authorize"** button (top right)
+   - Login first to get JWT token
+   - Paste token in format: `your-jwt-token-here`
+   - Click "Authorize"
+4. Now you can test all endpoints!
+
+### Available API Tags:
+- **Auth** - Register, Login, Profile management
+- **Products** - CRUD, search, filter, pagination
+- **Categories** - Category management (admin only)
+- **Cart** - Shopping cart operations
+- **Orders** - Checkout and order management
+- **Reviews** - Product reviews and ratings
+- **Payments** - VNPAY payment integration
+- **Uploads** - File uploads to IPFS
 
 ---
 
@@ -441,6 +488,92 @@ curl -X DELETE http://localhost:3000/api/reviews/<review-id> \
 
 ---
 
+## 💳 Payment Module (VNPAY)
+
+### Endpoints
+- POST `/api/payments/create-payment-url` — Create VNPAY payment URL (JWT required)
+- GET `/api/payments/vnpay-return` — VNPAY return URL callback (public, verify only)
+- GET `/api/payments/vnpay-ipn` — VNPAY IPN callback (public, updates DB)
+- GET `/api/payments/order/:orderId` — Get payment by order ID (JWT required)
+- GET `/api/payments` — List all payments of authenticated user (JWT required)
+
+### Payment Model
+- id: uuid
+- orderId: uuid (FK to orders)
+- userId: uuid (FK to users)
+- amount: decimal(10,2)
+- status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded'
+- paymentMethod: string ('VNPAY', 'ATM', 'CREDIT_CARD', etc.)
+- vnpTxnRef: string (VNPAY transaction reference)
+- vnpTransactionNo: string (VNPAY transaction number)
+- vnpResponseCode: string (VNPAY response code: '00' = success)
+- vnpTransactionStatus: string (VNPAY transaction status: '00' = success)
+- vnpBankCode: string (Bank code)
+- vnpBankTranNo: string (Bank transaction number)
+- vnpCardType: string (Card type: ATM, QRCODE)
+- vnpPayDate: string (Payment date: yyyyMMddHHmmss)
+- failureReason: text (nullable)
+- metadata: jsonb (nullable)
+
+### Payment Flow
+1. **Create Payment URL**: User calls API → Server generates secure hash → Returns payment URL
+2. **Redirect**: Frontend redirects user to VNPAY payment gateway
+3. **Payment**: User completes payment on VNPAY
+4. **Return URL**: VNPAY redirects user back → Verify signature (display only)
+5. **IPN Callback**: VNPAY calls IPN URL → Server verifies & updates database → Returns RspCode
+
+### Examples (curl)
+```bash
+TOKEN="<your_jwt_token>"
+
+# Create payment URL for an order
+curl -X POST http://localhost:3000/api/payments/create-payment-url \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "<order-uuid>",
+    "bankCode": "VNBANK"  // optional: VNBANK, VNPAYQR, INTCARD
+  }'
+
+# Response:
+# {
+#   "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?...",
+#   "vnpTxnRef": "abc123...",
+#   "amount": 1000000.00,
+#   "orderId": "<order-uuid>"
+# }
+
+# Frontend should redirect user to paymentUrl
+
+# Get payment by order ID
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3000/api/payments/order/<order-id>
+
+# List all payments
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3000/api/payments
+```
+
+**Features:**
+- ✅ Secure hash generation (HMAC SHA512)
+- ✅ Hash verification for return URL and IPN
+- ✅ Automatic payment status update (via IPN callback)
+- ✅ Automatic order status update (pending → processing on success)
+- ✅ Support for multiple payment methods (ATM, QR Code, Credit Card)
+- ✅ Transaction expiration (default: 15 minutes)
+- ✅ Comprehensive error handling and response codes
+
+**Setup VNPAY:**
+1. Register at [VNPAY Sandbox](http://sandbox.vnpayment.vn/devreg/)
+2. Get TMN Code and Secret Key from email
+3. Add credentials to `.env`
+4. Configure Return URL and IPN URL in VNPAY dashboard
+   - Return URL: `http://localhost:3000/api/payments/vnpay-return` (development)
+   - IPN URL: `http://localhost:3000/api/payments/vnpay-ipn` (development)
+   - Use HTTPS URLs for production
+
+---
+
 ## 🧪 Testing (manual)
 ```bash
 # Register
@@ -525,6 +658,15 @@ src/
 │   ├── reviews.controller.ts
 │   ├── reviews.module.ts
 │   └── reviews.service.ts
+├── payments/
+│   ├── dto/
+│   │   └── create-payment-intent.dto.ts
+│   ├── entities/
+│   │   └── payment.entity.ts
+│   ├── payments.controller.ts
+│   ├── payments.module.ts
+│   ├── payments.service.ts
+│   └── vnpay.service.ts
 ├── entities/
 │   └── user.entity.ts
 ├── app.controller.ts
