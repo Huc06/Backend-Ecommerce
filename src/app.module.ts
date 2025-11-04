@@ -23,6 +23,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { Voucher } from './vouchers/entities/voucher.entity';
 import { VouchersModule } from './vouchers/vouchers.module';
 import { EmailModule } from './email/email.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { EmailModule } from './email/email.module';
     PaymentsModule,
     VouchersModule,
     EmailModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
