@@ -22,7 +22,7 @@ import { EmailService } from './email.service';
           from: `"E-Commerce Platform" <${config.get('MAIL_FROM', 'noreply@ecommerce.com')}>`,
         },
         template: {
-          dir: join(__dirname, 'templates'),
+          dir: join(process.cwd(), 'src', 'email', 'templates'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
