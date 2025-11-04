@@ -5,21 +5,47 @@ A modern e-commerce backend built with NestJS, PostgreSQL, TypeORM, JWT auth, an
 ---
 
 ## ✨ Features
-- ✅ User Authentication (Register, Login)
+
+### 🔐 Authentication & Authorization
+- ✅ User Authentication (Register, Login, Profile)
 - ✅ JWT Authentication with Passport Guards
-- ✅ Protected Routes (Profile Management)
-- ✅ Products Module (CRUD, search, filter, sort, pagination)
-- ✅ Categories Module (Admin-only CRUD)
-- ✅ Cart Module (Add/update/remove items, auto-create cart)
-- ✅ Orders Module (Checkout cart, order management with transaction)
-- ✅ Reviews Module (Product reviews with rating, validation)
-- ✅ Payment Module (VNPAY integration with secure hash, IPN callback)
-- ✅ Swagger/OpenAPI Documentation (Interactive API docs)
-- ✅ PostgreSQL with TypeORM
-- ✅ Docker Compose for DB + pgAdmin
-- ✅ Input validation (class-validator)
-- ✅ Global pipes, CORS, and env config
-- ✅ File Uploads to IPFS via Pinata (JWT)
+- ✅ Role-based Access Control (Buyer, Seller, Admin)
+- ✅ Protected Routes & Decorators
+
+### 🛍️ E-Commerce Core
+- ✅ **Products Module**: CRUD, search, filter, sort, pagination
+- ✅ **Categories Module**: Admin-only category management
+- ✅ **Cart Module**: Add/update/remove items, auto-create cart
+- ✅ **Orders Module**: Checkout with transaction management
+- ✅ **Reviews Module**: Product ratings & comments with validation
+- ✅ **Vouchers/Discounts**: Percentage & fixed discounts with usage tracking
+
+### 💳 Payment & Delivery
+- ✅ **VNPAY Integration**: Secure payment gateway with IPN callbacks
+- ✅ **Order Tracking**: Real-time order status updates
+- ✅ **Email Notifications**: Welcome emails & order confirmations
+
+### 📧 Communication
+- ✅ **Email Service**: Beautiful HTML templates with Handlebars
+- ✅ **Welcome Emails**: Onboarding for new users
+- ✅ **Order Confirmations**: Detailed order receipts with tracking links
+- ✅ **Status Updates**: Notifications for order processing, shipping, delivery
+
+### 🎛️ Admin Dashboard
+- ✅ **Dashboard Statistics**: Users, products, orders, revenue metrics
+- ✅ **Revenue Reports**: Analytics with date range filters
+- ✅ **Top Products**: Best-selling items tracking
+- ✅ **User Management**: Block/unblock users, change roles
+- ✅ **Review Moderation**: Approve/reject/delete reviews
+
+### 🚀 Technical Features
+- ✅ **Swagger/OpenAPI**: Interactive API documentation
+- ✅ **PostgreSQL + TypeORM**: Robust database with ORM
+- ✅ **Docker Compose**: DB + pgAdmin containers
+- ✅ **File Uploads**: IPFS via Pinata Cloud
+- ✅ **Input Validation**: class-validator & class-transformer
+- ✅ **Global Error Handling**: Consistent error responses
+- ✅ **CORS & Security**: Production-ready configuration
 
 ---
 
@@ -69,6 +95,9 @@ DB_USERNAME=admin
 DB_PASSWORD=admin123
 DB_NAME=ecommerce
 
+# For Render deployment (alternative to individual DB vars)
+# DATABASE_URL=postgresql://user:password@host:5432/database
+
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
@@ -87,8 +116,20 @@ VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 VNPAY_RETURN_URL=http://localhost:3000/api/payments/vnpay-return
 # VNPAY_RETURN_URL=https://your-domain.com/api/payments/vnpay-return  # Production
 
+# Email Service (SMTP)
+# For Gmail: Enable "Less secure app access" or use App Password
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_FROM=noreply@ecommerce.com
+
+# Frontend URL (for email links)
+FRONTEND_URL=http://localhost:3001
+
 # App
 PORT=3000
+NODE_ENV=development
 ```
 
 ### 4) Start App
@@ -667,6 +708,30 @@ src/
 │   ├── payments.module.ts
 │   ├── payments.service.ts
 │   └── vnpay.service.ts
+├── vouchers/
+│   ├── dto/
+│   │   ├── create-voucher.dto.ts
+│   │   ├── update-voucher.dto.ts
+│   │   └── apply-voucher.dto.ts
+│   ├── entities/
+│   │   └── voucher.entity.ts
+│   ├── vouchers.controller.ts
+│   ├── vouchers.module.ts
+│   └── vouchers.service.ts
+├── email/
+│   ├── templates/
+│   │   ├── welcome.hbs
+│   │   └── order-confirmation.hbs
+│   ├── email.module.ts
+│   └── email.service.ts
+├── admin/
+│   ├── dto/
+│   │   ├── update-user-status.dto.ts
+│   │   ├── update-user-role.dto.ts
+│   │   └── update-review-status.dto.ts
+│   ├── admin.controller.ts
+│   ├── admin.module.ts
+│   └── admin.service.ts
 ├── entities/
 │   └── user.entity.ts
 ├── app.controller.ts
