@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order } from './entities/order.entity';
@@ -8,18 +8,24 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cartItem.entity';
 import { Product } from '../products/entities/product.entity';
+import { User } from '../entities/user.entity';
 import { VouchersService } from '../vouchers/vouchers.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem) private orderItemRepo: Repository<OrderItem>,
     @InjectRepository(Cart) private cartRepo: Repository<Cart>,
     @InjectRepository(CartItem) private cartItemRepo: Repository<CartItem>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
+    @InjectRepository(User) private userRepo: Repository<User>,
     private dataSource: DataSource,
     private vouchersService: VouchersService,
+    private emailService: EmailService,
   ) {}
 
   async checkout(userId: string, dto: CheckoutDto) {
@@ -120,11 +126,24 @@ export class OrdersService {
 
       await queryRunner.commitTransaction();
 
-      // Return order with items
-      return await this.orderRepo.findOne({
+      // Get order with items for response
+      const orderWithItems = await this.orderRepo.findOne({
         where: { id: savedOrder.id },
         relations: ['items', 'items.product'],
       });
+
+      // Get user info for email
+      const user = await this.userRepo.findOne({ where: { id: userId } });
+      if (user && orderWithItems) {
+        // Send order confirmation email (async, don't wait)
+        this.emailService
+          .sendOrderConfirmation(orderWithItems, user.email, user.fullName)
+          .catch((error) => {
+            this.logger.error(`Failed to send order confirmation email: ${error.message}`);
+          });
+      }
+
+      return orderWithItems;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
