@@ -8,6 +8,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cartItem.entity';
 import { Product } from '../products/entities/product.entity';
+import { VouchersService } from '../vouchers/vouchers.service';
 
 @Injectable()
 export class OrdersService {
@@ -18,6 +19,7 @@ export class OrdersService {
     @InjectRepository(CartItem) private cartItemRepo: Repository<CartItem>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
     private dataSource: DataSource,
+    private vouchersService: VouchersService,
   ) {}
 
   async checkout(userId: string, dto: CheckoutDto) {
@@ -31,8 +33,8 @@ export class OrdersService {
       throw new BadRequestException('Cart is empty');
     }
 
-    // Calculate total and validate stock
-    let totalAmount = 0;
+    // Calculate subtotal and validate stock
+    let subtotal = 0;
     for (const item of cart.items) {
       const product = await this.productRepo.findOne({ where: { id: item.productId } });
       if (!product) {
@@ -41,8 +43,26 @@ export class OrdersService {
       if (product.stock < item.quantity) {
         throw new BadRequestException(`Insufficient stock for product: ${product.name}`);
       }
-      totalAmount += Number(item.unitPrice) * item.quantity;
+      subtotal += Number(item.unitPrice) * item.quantity;
     }
+
+    // Apply voucher if provided
+    let voucherCode: string | undefined = undefined;
+    let voucherDiscount = 0;
+    let voucherId: string | undefined = undefined;
+
+    if (dto.voucherCode) {
+      const result = await this.vouchersService.validateAndCalculateDiscount(
+        dto.voucherCode,
+        subtotal,
+      );
+      voucherCode = result.voucher.code;
+      voucherDiscount = result.discountAmount;
+      voucherId = result.voucher.id;
+    }
+
+    // Calculate final total amount
+    const totalAmount = subtotal - voucherDiscount;
 
     // Use transaction to ensure consistency
     const queryRunner = this.dataSource.createQueryRunner();
@@ -53,6 +73,9 @@ export class OrdersService {
       // Create order
       const order = this.orderRepo.create({
         userId,
+        subtotal,
+        voucherCode,
+        voucherDiscount,
         totalAmount,
         status: 'pending',
         shippingAddress: dto.shippingAddress,
@@ -89,6 +112,11 @@ export class OrdersService {
       // Clear cart
       await queryRunner.manager.remove(cart.items);
       await queryRunner.manager.remove(cart);
+
+      // Increment voucher usage count if applied
+      if (voucherId) {
+        await this.vouchersService.incrementUsage(voucherId);
+      }
 
       await queryRunner.commitTransaction();
 

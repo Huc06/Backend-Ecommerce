@@ -7,10 +7,12 @@ import { OrderItem } from './entities/orderItem.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cartItem.entity';
 import { Product } from '../products/entities/product.entity';
+import { VouchersModule } from '../vouchers/vouchers.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem, Cart, CartItem, Product]),
+    VouchersModule, // Import để sử dụng VouchersService
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
