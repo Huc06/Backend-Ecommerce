@@ -7,6 +7,7 @@ import { User } from '../entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -44,6 +46,11 @@ export class AuthService {
     await this.userRepository.save(user);
 
     this.logger.log(`User registered successfully: ${user.email}`);
+
+    // Send welcome email (async, don't wait)
+    this.emailService.sendWelcomeEmail(user.email, user.fullName).catch((error) => {
+      this.logger.error(`Failed to send welcome email: ${error.message}`);
+    });
 
     // Return user without password
     const { password, ...result } = user;

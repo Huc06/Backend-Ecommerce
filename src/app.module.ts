@@ -20,6 +20,10 @@ import { Review } from './reviews/entities/review.entity';
 import { ReviewsModule } from './reviews/reviews.module';
 import { Payment } from './payments/entities/payment.entity';
 import { PaymentsModule } from './payments/payments.module';
+import { Voucher } from './vouchers/entities/voucher.entity';
+import { VouchersModule } from './vouchers/vouchers.module';
+import { EmailModule } from './email/email.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -34,7 +38,7 @@ import { PaymentsModule } from './payments/payments.module';
           return {
             type: 'postgres',
             url: databaseUrl,
-            entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review, Payment],
+            entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review, Payment, Voucher],
             synchronize: configService.get<string>('NODE_ENV') !== 'production',
             ssl: { rejectUnauthorized: false },
           };
@@ -48,7 +52,7 @@ import { PaymentsModule } from './payments/payments.module';
           username: configService.get<string>('DB_USERNAME', 'admin'),
           password: configService.get<string>('DB_PASSWORD', 'admin123'),
           database: configService.get<string>('DB_NAME', 'ecommerce'),
-          entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review],
+          entities: [User, Product, Category, Cart, CartItem, Order, OrderItem, Review, Payment, Voucher],
           synchronize: true,
         };
       },
@@ -62,6 +66,9 @@ import { PaymentsModule } from './payments/payments.module';
     OrdersModule,
     ReviewsModule,
     PaymentsModule,
+    VouchersModule,
+    EmailModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

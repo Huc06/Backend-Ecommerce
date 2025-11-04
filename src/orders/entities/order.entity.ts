@@ -11,7 +11,16 @@ export class Order {
   userId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  totalAmount: number;
+  subtotal: number; // Tổng tiền trước khi giảm giá
+
+  @Column({ type: 'varchar', nullable: true })
+  voucherCode: string; // Mã voucher đã áp dụng
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  voucherDiscount: number; // Số tiền giảm giá
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  totalAmount: number; // Tổng tiền sau khi giảm giá
 
   @Column({ default: 'pending' })
   status: string; // 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
