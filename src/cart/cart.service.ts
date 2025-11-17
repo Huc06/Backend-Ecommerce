@@ -34,16 +34,26 @@ export class CartService {
     const product = await this.productRepo.findOne({ where: { id: dto.productId } });
     if (!product) throw new NotFoundException('Product not found');
 
-    const existing = cart.items?.find((i) => i.productId === dto.productId);
+    // Ensure cart.items is initialized
+    if (!cart.items) {
+      cart.items = [];
+    }
+
+    const existing = cart.items.find((i) => i.productId === dto.productId);
     if (existing) {
       existing.quantity += dto.quantity;
       await this.itemRepo.save(existing);
     } else {
+      // Convert price to number (TypeORM returns decimal as string)
+      const unitPrice = typeof product.price === 'string' 
+        ? parseFloat(product.price) 
+        : Number(product.price);
+      
       const item = this.itemRepo.create({
         cartId: cart.id,
         productId: dto.productId,
         quantity: dto.quantity,
-        unitPrice: product.price as unknown as number,
+        unitPrice,
       });
       await this.itemRepo.save(item);
     }
