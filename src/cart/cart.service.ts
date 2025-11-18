@@ -30,34 +30,49 @@ export class CartService {
   }
 
   async addItem(userId: string, dto: AddItemDto) {
-    const cart = await this.getOrCreateCart(userId);
-    const product = await this.productRepo.findOne({ where: { id: dto.productId } });
-    if (!product) throw new NotFoundException('Product not found');
-
-    // Ensure cart.items is initialized
-    if (!cart.items) {
-      cart.items = [];
-    }
-
-    const existing = cart.items.find((i) => i.productId === dto.productId);
-    if (existing) {
-      existing.quantity += dto.quantity;
-      await this.itemRepo.save(existing);
-    } else {
-      // Convert price to number (TypeORM returns decimal as string)
-      const unitPrice = typeof product.price === 'string' 
-        ? parseFloat(product.price) 
-        : Number(product.price);
+    try {
+      console.log('[cart.service] addItem start', { userId, productId: dto.productId, quantity: dto.quantity });
       
-      const item = this.itemRepo.create({
-        cartId: cart.id,
-        productId: dto.productId,
-        quantity: dto.quantity,
-        unitPrice,
-      });
-      await this.itemRepo.save(item);
+      const cart = await this.getOrCreateCart(userId);
+      console.log('[cart.service] cart found', { cartId: cart.id, itemsCount: cart.items?.length || 0 });
+      
+      const product = await this.productRepo.findOne({ where: { id: dto.productId } });
+      if (!product) throw new NotFoundException('Product not found');
+      console.log('[cart.service] product found', { productId: product.id, price: product.price, priceType: typeof product.price });
+
+      // Ensure cart.items is initialized
+      if (!cart.items) {
+        cart.items = [];
+      }
+
+      const existing = cart.items.find((i) => i.productId === dto.productId);
+      if (existing) {
+        console.log('[cart.service] updating existing item', { itemId: existing.id, oldQty: existing.quantity, newQty: existing.quantity + dto.quantity });
+        existing.quantity += dto.quantity;
+        await this.itemRepo.save(existing);
+      } else {
+        // Convert price to number (TypeORM returns decimal as string)
+        const unitPrice = typeof product.price === 'string' 
+          ? parseFloat(product.price) 
+          : Number(product.price);
+        
+        console.log('[cart.service] creating new item', { cartId: cart.id, productId: dto.productId, quantity: dto.quantity, unitPrice, unitPriceType: typeof unitPrice });
+        
+        const item = this.itemRepo.create({
+          cartId: cart.id,
+          productId: dto.productId,
+          quantity: dto.quantity,
+          unitPrice,
+        });
+        console.log('[cart.service] item created, saving...', item);
+        await this.itemRepo.save(item);
+        console.log('[cart.service] item saved successfully');
+      }
+      return this.getOrCreateCart(userId);
+    } catch (error) {
+      console.error('[cart.service] addItem error', { userId, dto, error: error.message, stack: error.stack });
+      throw error;
     }
-    return this.getOrCreateCart(userId);
   }
 
   async updateItem(userId: string, itemId: string, dto: UpdateItemDto) {
