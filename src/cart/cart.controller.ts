@@ -16,6 +16,14 @@ export class CartController {
 
   @Post('items')
   addItem(@Request() req: any, @Body() dto: AddItemDto) {
+    console.log('[cart.controller] addItem called', {
+      userId: req.user?.id,
+      dto,
+      dtoType: typeof dto,
+      productIdType: typeof dto?.productId,
+      quantityType: typeof dto?.quantity,
+      rawBody: req.body
+    });
     return this.cartService.addItem(req.user.id, dto);
   }
 
