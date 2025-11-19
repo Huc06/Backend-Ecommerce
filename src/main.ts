@@ -15,7 +15,11 @@ async function bootstrap() {
     whitelist: true,
     transform: true,
     forbidNonWhitelisted: false,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
   }));
+  logger.log('✅ ValidationPipe registered with transform enabled');
 
   // Global prefix (MUST be set before Swagger setup)
   app.setGlobalPrefix('api');
