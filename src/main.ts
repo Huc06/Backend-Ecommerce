@@ -10,6 +10,18 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
 
+  // Log all incoming requests
+  app.use((req: any, res: any, next: any) => {
+    console.log('[middleware] incoming request', {
+      method: req.method,
+      url: req.url,
+      contentType: req.headers['content-type'],
+      bodyRaw: req.body,
+      bodyType: typeof req.body
+    });
+    next();
+  });
+
   // Global validation pipe
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
